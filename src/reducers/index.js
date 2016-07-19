@@ -1,10 +1,12 @@
-"use strict"
+"use strict";
 
 import {combineReducers} from "redux";
 import courses from "./courseReducer";
+import authors from "./authorReducer";
 
 const rootReducer = combineReducers({
-  courses: courses
+  courses: courses,
+  authors: authors
 });
 
 export default rootReducer;

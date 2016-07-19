@@ -3,40 +3,95 @@
 import React, { PropTypes } from "react";
 import { connect } from "react-redux";
 import { bindActionCreators } from "redux";
+import CourseForm from "./CourseForm";
 import * as courseActions from "../../actions/courseActions";
+
 
 class ManageCoursePage extends React.Component {
   constructor(props, context) {
       super(props, context);
       this.state = {
-        course: { title: ""}
+        course: Object.assign({}, this.props.course),
+        errors: {}
       };
 
-      this.onClickSave = this.onClickSave.bind(this);
-      this.onTitleChange = this.onTitleChange.bind(this);
+      this.updateCourseState = this.updateCourseState.bind(this);
+      this.saveCourse = this.saveCourse.bind(this);
   }
 
-  onTitleChange(event) {
-    const course = this.state.course;
-    course.title = event.target.value;
-    this.setState({ course: course });
+  componentWillReceiveProps(nextProps) {
+    if (this.props.course.id !== nextProps.course.id) {
+      this.setState({ course: Object.assign({}, nextProps.course) });
+    }
+  }
+
+  updateCourseState(event) {
+    const field = event.target.name;
+    let course = this.state.course;
+    course[field] = event.target.value;
+    return this.setState({ course: course });
+  }
+
+  saveCourse(event) {
+    event.preventDefault();
+    this.props.actions.saveCourse(this.state.course);
+    this.context.router.push("/courses");
   }
 
   render() {
     return (
-      <h1>Manage Course</h1>
+      <div>
+        <CourseForm
+          course={this.state.course}
+          allAuthors={this.props.authors}
+          onSave={this.saveCourse}
+          onChange={this.updateCourseState}
+          errors={this.state.errors}
+        />
+      </div>
     );
   }
 }
 
 ManageCoursePage.propTypes = {
-
+  course: PropTypes.object.isRequired,
+  authors: PropTypes.array.isRequired,
+  actions: PropTypes.object.isRequired
 };
 
+//  router is available on this.context.router
+ManageCoursePage.contextTypes = {
+  router: PropTypes.object
+};
+
+// use lodash instead
+function getCourseById(courses, id) {
+  const course = courses.filter((course) => course.id == id);
+  if (course.length) {
+    return course[0] ;
+  }
+  return null;
+}
+
 function mapStateToProps(state, ownProps) {
-    return {
-      state: state
-    };
+  const courseId = ownProps.params.id;
+
+  let course = { id: "", watchHref: "", title: "", authorId: "", length: "", category: "" };
+
+  if (courseId && state.courses.length > 0) {
+    course = getCourseById(state.courses, courseId);
+  }
+
+  const authorsFormattedForDropdown = state.authors.map((author) => {
+      return {
+        value: author.id,
+        text: author.firstName + " " + author.lastName
+      };
+  });
+  return {
+    course: course,
+    authors: authorsFormattedForDropdown
+  };
 }
 
 function mapDispatchToProps(dispatch) {
@@ -46,16 +101,3 @@ function mapDispatchToProps(dispatch) {
 }
 
 export default connect(mapStateToProps, mapDispatchToProps)(ManageCoursePage);
-
-
-
-  onClickSave() {
-    this.props.actions.createCourse(this.state.course);
-  }
-          <h2>Add Course</h2>
-          <input type="text"
-                 onChange={this.onTitleChange}
-                 value={this.state.course.title} />
-          <input type="submit"
-                 onClick={this.onClickSave}
-                 value="Save" />

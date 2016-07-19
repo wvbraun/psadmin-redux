@@ -1,7 +1,7 @@
 "use strict";
 
 import React, {PropTypes} from "react";
-import Header from "./common/header";
+import Header from "./common/Header";
 
 class App extends React.Component {
   render() {
